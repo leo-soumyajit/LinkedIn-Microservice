@@ -27,6 +27,7 @@ public class postService {
         post.setUserId(userId);
         log.info("Saving post for user with userId: {}",userId);
         Post savedPost = postRepository.save(post);
+        log.info("Successfully saved the post");
         return modelMapper.map(savedPost,postDto.class);
     }
 
