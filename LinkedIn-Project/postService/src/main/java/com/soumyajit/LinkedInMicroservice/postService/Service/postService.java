@@ -1,0 +1,56 @@
+package com.soumyajit.LinkedInMicroservice.postService.Service;
+
+import com.soumyajit.LinkedInMicroservice.postService.DTOS.postCreateRequestDto;
+import com.soumyajit.LinkedInMicroservice.postService.DTOS.postDto;
+import com.soumyajit.LinkedInMicroservice.postService.Entities.Post;
+import com.soumyajit.LinkedInMicroservice.postService.Exceptions.ResourceNotFound;
+import com.soumyajit.LinkedInMicroservice.postService.Repository.postRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class postService {
+    private final postRepository postRepository;
+    private final ModelMapper modelMapper;
+
+    public postDto createPost(postCreateRequestDto postCreateRequestDto, Long userId){
+        log.info("Creating post for user with userId: {}",userId);
+        Post post = modelMapper.map(postCreateRequestDto,Post.class);
+        post.setUserId(userId);
+        log.info("Saving post for user with userId: {}",userId);
+        Post savedPost = postRepository.save(post);
+        return modelMapper.map(savedPost,postDto.class);
+    }
+
+    public postDto getPostById(Long postId) {
+        log.info("Getting post with postId: {}",postId);
+        Post post = postRepository.findById(postId).orElseThrow(()->
+                new ResourceNotFound("post with id "+postId+" not found"));
+        return modelMapper.map(post, postDto.class);
+    }
+
+    public List<postDto> getAllPostsOfUser(Long userId) {
+        log.info("Getting all the posts of a User with Id: {}",userId);
+        List<Post> posts = postRepository.findByUserId(userId);
+        return posts.stream().map(post ->
+                        modelMapper.map(post,postDto.class))
+                .collect(Collectors.toList());
+    }
+
+
+    //TODO : for all posts inside feed
+    public List<postDto> getAllPosts() {
+        log.info("Getting all the posts");
+        return postRepository.findAll().stream().map(post ->
+                        modelMapper.map(post,postDto.class))
+                .collect(Collectors.toList());
+    }
+}
