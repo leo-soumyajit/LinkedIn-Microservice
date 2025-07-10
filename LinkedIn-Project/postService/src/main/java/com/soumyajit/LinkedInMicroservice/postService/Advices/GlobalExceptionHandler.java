@@ -1,5 +1,6 @@
 package com.soumyajit.LinkedInMicroservice.postService.Advices;
 
+import com.soumyajit.LinkedInMicroservice.postService.Exceptions.BadRequestException;
 import com.soumyajit.LinkedInMicroservice.postService.Exceptions.ResourceNotFound;
 //import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFound.class)
     public ResponseEntity<ApiResponse<?>> noEmployeeFound(ResourceNotFound exception){
         ApiError apiError = ApiError.builder().status(HttpStatus.NOT_FOUND).message(exception.getMessage()).build();
+        return buildErrorResponseEntity(apiError);
+    }
+
+    public ResponseEntity<ApiResponse<?>> badRequestException(BadRequestException exception){
+        ApiError apiError = ApiError.builder().status(HttpStatus.BAD_REQUEST).message(exception.getMessage()).build();
         return buildErrorResponseEntity(apiError);
     }
 
