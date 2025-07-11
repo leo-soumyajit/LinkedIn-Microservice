@@ -1,5 +1,6 @@
 package com.soumyajit.LinkedInMicroservice.userService.Controller;
 
+import com.soumyajit.LinkedInMicroservice.userService.Advices.ApiResponse;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.LoginRequestDto;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.SignupRequestDto;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.UserDto;
@@ -27,11 +28,12 @@ public class UserController {
     }
 
 
-//    @PostMapping("/login")
-//    public ResponseEntity<String> login(@RequestBody LoginRequestDto loginRequestDto){
-//        String token = authService.login(loginRequestDto);
-//        return ResponseEntity.ok(token);
-//    }
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequestDto loginRequestDto){
+        String token = authService.login(loginRequestDto);
+        ApiResponse apiResponse = new ApiResponse(token);
+        return ResponseEntity.ok(apiResponse);
+    }
 
 
 }
