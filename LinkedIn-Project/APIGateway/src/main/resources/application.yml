@@ -1,4 +1,5 @@
 eureka.client.service-url.defaultZone: http://localhost:8761/eureka
+jwt.secretKey: hsdsd5vs4d5s5vsdds6vad5bs6bwglkavad68b8s9d7bkjbsdk56aafopq0as989as
 
 server.port: 9040
 
@@ -17,12 +18,14 @@ spring:
           filters:
             - StripPrefix=2
 
+
         - id: post-service
           uri: lb://POST-SERVICE
           predicates:
             - Path=/api/v1/posts/**
           filters:
             - StripPrefix=2
+            - name: AuthenticationFilter
 
         - id: connection-service
           uri: lb://CONNECTION-SERVICE
@@ -30,6 +33,7 @@ spring:
             - Path=/api/v1/connections/**
           filters:
             - StripPrefix=2
+            - name: AuthenticationFilter
 
 
 
