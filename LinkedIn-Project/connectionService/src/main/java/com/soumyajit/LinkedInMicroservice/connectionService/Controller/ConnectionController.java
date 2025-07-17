@@ -3,17 +3,16 @@ package com.soumyajit.LinkedInMicroservice.connectionService.Controller;
 import com.soumyajit.LinkedInMicroservice.connectionService.Entities.Person;
 import com.soumyajit.LinkedInMicroservice.connectionService.Service.ConnectionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/core")
+@Slf4j
 public class ConnectionController {
 
     private final ConnectionService connectionService;
