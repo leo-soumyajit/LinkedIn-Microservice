@@ -1,12 +1,14 @@
 package com.soumyajit.LinkedInMicroservice.postService.Service;
 
+import com.soumyajit.LinkedInMicroservice.postService.Client.ConnectionServiceClient;
+import com.soumyajit.LinkedInMicroservice.postService.DTOS.Person;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.postCreateRequestDto;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.postDto;
 import com.soumyajit.LinkedInMicroservice.postService.Entities.Post;
 import com.soumyajit.LinkedInMicroservice.postService.Exceptions.ResourceNotFound;
 import com.soumyajit.LinkedInMicroservice.postService.Repository.postRepository;
+import com.soumyajit.LinkedInMicroservice.postService.Auth.AuthContextHolder;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class postService {
     private final postRepository postRepository;
     private final ModelMapper modelMapper;
+    private final ConnectionServiceClient ConnectionServiceClient;
 
     public postDto createPost(postCreateRequestDto postCreateRequestDto, Long userId){
         log.info("Creating post for user with userId: {}",userId);
@@ -33,6 +36,15 @@ public class postService {
 
     public postDto getPostById(Long postId) {
         log.info("Getting post with postId: {}",postId);
+        //get userId
+        AuthContextHolder.getCurrentUserId();
+
+//        TODO: remove in future
+//        Call the Connections Service from the postService and pass the UserId inside headers
+
+        List<Person> personList = ConnectionServiceClient.getFirstDegreeConnection(AuthContextHolder.getCurrentUserId());
+
+        log.info("User id is : {}",AuthContextHolder.getCurrentUserId());
         Post post = postRepository.findById(postId).orElseThrow(()->
                 new ResourceNotFound("post with id "+postId+" not found"));
         return modelMapper.map(post, postDto.class);
