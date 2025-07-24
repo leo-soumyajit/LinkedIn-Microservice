@@ -5,12 +5,14 @@ import com.soumyajit.LinkedInMicroservice.postService.DTOS.Person;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.postCreateRequestDto;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.postDto;
 import com.soumyajit.LinkedInMicroservice.postService.Entities.Post;
+import com.soumyajit.LinkedInMicroservice.postService.Events.PostCreatedEvent;
 import com.soumyajit.LinkedInMicroservice.postService.Exceptions.ResourceNotFound;
 import com.soumyajit.LinkedInMicroservice.postService.Repository.postRepository;
 import com.soumyajit.LinkedInMicroservice.postService.Auth.AuthContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +25,7 @@ public class postService {
     private final postRepository postRepository;
     private final ModelMapper modelMapper;
     private final ConnectionServiceClient ConnectionServiceClient;
+    private final KafkaTemplate<Long, PostCreatedEvent> postCreatedEventKafkaTemplate;
 
     public postDto createPost(postCreateRequestDto postCreateRequestDto, Long userId){
         log.info("Creating post for user with userId: {}",userId);
@@ -31,6 +34,19 @@ public class postService {
         log.info("Saving post for user with userId: {}",userId);
         Post savedPost = postRepository.save(post);
         log.info("Successfully saved the post");
+
+        List<Person> personList = ConnectionServiceClient.getFirstDegreeConnection(AuthContextHolder.getCurrentUserId());
+
+        for(Person person : personList){ // send notification to each connection
+            PostCreatedEvent postCreatedEvent = PostCreatedEvent.builder()
+                    .postId(post.getId())
+                    .userId(person.getUserId())
+                    .content(postCreateRequestDto.getContent())
+                    .ownerUserId(userId)
+                    .build();
+            postCreatedEventKafkaTemplate.send("post_created_topic",postCreatedEvent);
+        }
+
         return modelMapper.map(savedPost,postDto.class);
     }
 
@@ -38,11 +54,6 @@ public class postService {
         log.info("Getting post with postId: {}",postId);
         //get userId
         AuthContextHolder.getCurrentUserId();
-
-//        TODO: remove in future
-//        Call the Connections Service from the postService and pass the UserId inside headers
-
-        List<Person> personList = ConnectionServiceClient.getFirstDegreeConnection(AuthContextHolder.getCurrentUserId());
 
         log.info("User id is : {}",AuthContextHolder.getCurrentUserId());
         Post post = postRepository.findById(postId).orElseThrow(()->
