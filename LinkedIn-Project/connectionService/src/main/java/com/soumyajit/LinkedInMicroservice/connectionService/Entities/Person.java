@@ -1,5 +1,6 @@
 package com.soumyajit.LinkedInMicroservice.connectionService.Entities;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Data
 @Getter
 @Setter
+@Builder
 public class Person {
 
     @Id
