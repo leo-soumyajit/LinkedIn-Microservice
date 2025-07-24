@@ -5,6 +5,7 @@ import com.soumyajit.LinkedInMicroservice.userService.DTOS.SignupRequestDto;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.UserDto;
 import com.soumyajit.LinkedInMicroservice.userService.Entities.Enum.Roles;
 import com.soumyajit.LinkedInMicroservice.userService.Entities.User;
+import com.soumyajit.LinkedInMicroservice.userService.Events.UserCreatedEvent;
 import com.soumyajit.LinkedInMicroservice.userService.Exceptions.BadRequestException;
 import com.soumyajit.LinkedInMicroservice.userService.Exceptions.ResourceNotFound;
 import com.soumyajit.LinkedInMicroservice.userService.Repository.UserRepository;
@@ -13,6 +14,7 @@ import com.soumyajit.LinkedInMicroservice.userService.Utils.BCrypt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 
@@ -27,6 +29,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
+    private final KafkaTemplate<Long,UserCreatedEvent> userKafkaTemplate;
 
     public UserDto signup(SignupRequestDto signupRequestDto) {
 
@@ -43,6 +46,14 @@ public class AuthService {
 
         user = userRepository.save(user);
         log.info("saved the user with email: {}",signupRequestDto.getEmail());
+
+        //send event
+        UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .build();
+        userKafkaTemplate.send("user_created_topic",userCreatedEvent);
+
         return modelMapper.map(user, UserDto.class);
     }
 
