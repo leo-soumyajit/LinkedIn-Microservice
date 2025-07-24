@@ -8,3 +8,7 @@ spring:
       properties:
         spring.json:
           trusted.packages: com.soumyajit.LinkedInMicroservice.*
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

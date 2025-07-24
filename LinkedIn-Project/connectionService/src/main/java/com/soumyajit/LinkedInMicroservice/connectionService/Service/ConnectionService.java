@@ -2,10 +2,12 @@ package com.soumyajit.LinkedInMicroservice.connectionService.Service;
 
 import com.soumyajit.LinkedInMicroservice.connectionService.Auth.AuthContextHolder;
 import com.soumyajit.LinkedInMicroservice.connectionService.Entities.Person;
+import com.soumyajit.LinkedInMicroservice.connectionService.Events.ConnectionAcceptEvent;
 import com.soumyajit.LinkedInMicroservice.connectionService.Exceptions.BadRequestException;
 import com.soumyajit.LinkedInMicroservice.connectionService.Repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @Slf4j
 public class ConnectionService {
     private final PersonRepository personRepository;
+    private final KafkaTemplate<Long, ConnectionAcceptEvent> acceptEventKafkaTemplate;
 
 
     public List<Person> getFirstDegreeConnectionOfUser(Long userId){
@@ -44,6 +47,8 @@ public class ConnectionService {
 
         personRepository.addConnectionRequest(senderId,receiverId);
         log.info("Successfully send the connection request");
+
+
     }
 
     public void acceptConnectionRequest(Long senderId){
@@ -68,6 +73,13 @@ public class ConnectionService {
         personRepository.acceptConnectionRequest(senderId,receiverId);
         log.info("Successfully accepted the connection request with senderId : " +
                 "{} receiverId : {}",senderId,receiverId);
+
+        ConnectionAcceptEvent connectionAcceptEvent = ConnectionAcceptEvent.builder()
+                .receiverId(receiverId)
+                .senderId(senderId)
+                .build();
+        // send notifications
+        acceptEventKafkaTemplate.send("accept_connection_topic",connectionAcceptEvent);
 
     }
 
