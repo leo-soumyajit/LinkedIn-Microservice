@@ -11,4 +11,9 @@ public class kafkaTopics {
     public NewTopic acceptConnectionTopic(){
         return new NewTopic("accept_connection_topic",3,(short) 1);
     }
+
+    @Bean
+    public NewTopic requestConnectionTopic(){
+        return new NewTopic("request_connection_topic",3,(short) 1);
+    }
 }

@@ -3,6 +3,7 @@ package com.soumyajit.LinkedInMicroservice.connectionService.Service;
 import com.soumyajit.LinkedInMicroservice.connectionService.Auth.AuthContextHolder;
 import com.soumyajit.LinkedInMicroservice.connectionService.Entities.Person;
 import com.soumyajit.LinkedInMicroservice.connectionService.Events.ConnectionAcceptEvent;
+import com.soumyajit.LinkedInMicroservice.connectionService.Events.ConnectionRequestEvent;
 import com.soumyajit.LinkedInMicroservice.connectionService.Exceptions.BadRequestException;
 import com.soumyajit.LinkedInMicroservice.connectionService.Repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class ConnectionService {
     private final PersonRepository personRepository;
     private final KafkaTemplate<Long, ConnectionAcceptEvent> acceptEventKafkaTemplate;
+    private final KafkaTemplate<Long, ConnectionRequestEvent> requestEventKafkaTemplate;
 
 
     public List<Person> getFirstDegreeConnectionOfUser(Long userId){
@@ -47,6 +49,11 @@ public class ConnectionService {
 
         personRepository.addConnectionRequest(senderId,receiverId);
         log.info("Successfully send the connection request");
+        ConnectionRequestEvent connectionRequestEvent = ConnectionRequestEvent.builder()
+                .receiverId(receiverId)
+                .senderId(senderId)
+                .build();
+        requestEventKafkaTemplate.send("request_connection_topic",connectionRequestEvent);
 
 
     }
