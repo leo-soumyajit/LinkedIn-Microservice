@@ -4,15 +4,13 @@ import com.soumyajit.LinkedInMicroservice.userService.Advices.ApiResponse;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.LoginRequestDto;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.SignupRequestDto;
 import com.soumyajit.LinkedInMicroservice.userService.DTOS.UserDto;
+import com.soumyajit.LinkedInMicroservice.userService.Entities.User;
 import com.soumyajit.LinkedInMicroservice.userService.Service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -33,6 +31,12 @@ public class UserController {
         String token = authService.login(loginRequestDto);
         ApiResponse apiResponse = new ApiResponse(token);
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDto> getUserById(@PathVariable("userId") Long userId) {
+        UserDto user = authService.getUserById(userId);
+        return ResponseEntity.ok(user);
     }
 
 

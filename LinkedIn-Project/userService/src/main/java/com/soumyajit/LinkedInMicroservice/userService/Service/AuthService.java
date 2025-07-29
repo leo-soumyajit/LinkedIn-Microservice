@@ -75,4 +75,10 @@ public class AuthService {
         return jwtService.generateAccessToken(user);
 
     }
+
+    public UserDto getUserById(Long userId) {
+        User user =  userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        return modelMapper.map(user, UserDto.class);
+    }
 }
