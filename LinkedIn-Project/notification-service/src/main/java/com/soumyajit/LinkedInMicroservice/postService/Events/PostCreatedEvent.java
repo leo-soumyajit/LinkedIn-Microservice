@@ -8,6 +8,8 @@ public class PostCreatedEvent {
     private Long ownerUserId;
     private Long postId;
     private Long userId;
+    private String userName;
+    private String imageUrl;
     private String content;
 
 }

@@ -21,6 +21,8 @@ public class Notification {
     private Long id;
     private Long user_id;
     private String message;
+    private String userName;
+    private String imageUrl;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
