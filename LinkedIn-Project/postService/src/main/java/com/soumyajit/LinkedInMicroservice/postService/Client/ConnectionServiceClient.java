@@ -1,5 +1,6 @@
 package com.soumyajit.LinkedInMicroservice.postService.Client;
 
+import com.soumyajit.LinkedInMicroservice.postService.Advices.ApiResponse;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.Person;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,6 @@ import java.util.List;
 public interface ConnectionServiceClient {
 
     @GetMapping("/core/{userId}/first-degree")
-    List<Person> getFirstDegreeConnection(@PathVariable Long userId);
+    ApiResponse<List<Person>> getFirstDegreeConnection(@PathVariable Long userId);
 
 }

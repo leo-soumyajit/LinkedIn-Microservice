@@ -1,6 +1,8 @@
 package com.soumyajit.LinkedInMicroservice.postService.Service;
 
+import com.soumyajit.LinkedInMicroservice.postService.Advices.ApiResponse;
 import com.soumyajit.LinkedInMicroservice.postService.Client.ConnectionServiceClient;
+import com.soumyajit.LinkedInMicroservice.postService.Client.UploaderServiceClient;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.Person;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.postCreateRequestDto;
 import com.soumyajit.LinkedInMicroservice.postService.DTOS.postDto;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,27 +28,40 @@ public class postService {
     private final postRepository postRepository;
     private final ModelMapper modelMapper;
     private final ConnectionServiceClient ConnectionServiceClient;
+    private final UploaderServiceClient uploaderServiceClient;
     private final KafkaTemplate<Long, PostCreatedEvent> postCreatedEventKafkaTemplate;
 
-    public postDto createPost(postCreateRequestDto postCreateRequestDto, Long userId){
+    public postDto createPost(String content, Long userId,
+                              MultipartFile multipartFile)
+    {
         log.info("Creating post for user with userId: {}",userId);
-        Post post = modelMapper.map(postCreateRequestDto,Post.class);
+        Post post = new Post();
+
+        String url = String.valueOf(uploaderServiceClient.upload(multipartFile));
+        log.info("Getting the url from uploader service : {}",url);
+
         post.setUserId(userId);
+        post.setUrl(url);
+        post.setContent(content);
         log.info("Saving post for user with userId: {}",userId);
         Post savedPost = postRepository.save(post);
         log.info("Successfully saved the post");
 
-        List<Person> personList = ConnectionServiceClient.getFirstDegreeConnection(AuthContextHolder.getCurrentUserId());
+        ApiResponse<List<Person>> response = ConnectionServiceClient.getFirstDegreeConnection(AuthContextHolder.getCurrentUserId());
+        List<Person> personList = response.getData();
 
         for(Person person : personList){ // send notification to each connection
             PostCreatedEvent postCreatedEvent = PostCreatedEvent.builder()
                     .postId(post.getId())
                     .userId(person.getUserId())
-                    .content(postCreateRequestDto.getContent())
+                    .userName(person.getName())
+                    .content(content)
                     .ownerUserId(userId)
+                    .imageUrl(url)
                     .build();
             postCreatedEventKafkaTemplate.send("post_created_topic",postCreatedEvent);
         }
+        log.info("Successfully send notification to each connection");
 
         return modelMapper.map(savedPost,postDto.class);
     }

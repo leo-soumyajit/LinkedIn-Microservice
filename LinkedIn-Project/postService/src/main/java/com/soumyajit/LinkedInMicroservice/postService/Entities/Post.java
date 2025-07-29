@@ -22,6 +22,8 @@ public class Post {
     @Column(nullable = false)
     private String content;
 
+    private String url;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 }
